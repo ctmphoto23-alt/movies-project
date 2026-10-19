@@ -4,6 +4,7 @@ const queryInput = document.querySelector("#movie-query");
 const grid = document.querySelector("#movie-grid");
 const statusMessage = document.querySelector("#status-message");
 const resultsCount = document.querySelector("#results-count");
+const sortOrder = document.querySelector("#sort-order");
 const sectionKicker = document.querySelector("#section-kicker");
 const moviesHeading = document.querySelector("#movies-heading");
 const details = document.querySelector("#movie-details");
@@ -27,6 +28,7 @@ let searchTimer;
 let searchController;
 let detailsController;
 let totalResults = 0;
+let currentMovies = [];
 
 function isLocalPreview() {
   return window.location.protocol === "file:"
@@ -110,6 +112,7 @@ function clearSearchResults() {
   if (detailsController) detailsController.abort();
   details.hidden = true;
   totalResults = 0;
+  currentMovies = [];
   grid.replaceChildren();
   resultsCount.textContent = "";
   sectionKicker.textContent = "Find your next favorite";
@@ -118,7 +121,22 @@ function clearSearchResults() {
 }
 
 function renderMovies(movies, query) {
-  const visibleMovies = movies.slice(0, MAX_VISIBLE_MOVIES);
+  currentMovies = movies;
+  const sortedMovies = [...movies];
+  if (sortOrder.value === "oldest") {
+    sortedMovies.sort((a, b) => {
+      const yearA = Number.parseInt(a.Year, 10) || Number.MAX_SAFE_INTEGER;
+      const yearB = Number.parseInt(b.Year, 10) || Number.MAX_SAFE_INTEGER;
+      return yearA - yearB;
+    });
+  } else if (sortOrder.value === "az" || sortOrder.value === "za") {
+    sortedMovies.sort((a, b) => {
+      const order = a.Title.localeCompare(b.Title, undefined, { sensitivity: "base" });
+      return sortOrder.value === "az" ? order : -order;
+    });
+  }
+
+  const visibleMovies = sortedMovies.slice(0, MAX_VISIBLE_MOVIES);
   grid.replaceChildren(...visibleMovies.map(createMovieCard));
   const displayedCount = visibleMovies.length;
   resultsCount.textContent = totalResults
@@ -270,6 +288,12 @@ searchForm.addEventListener("submit", (event) => {
   event.preventDefault();
   clearTimeout(searchTimer);
   scheduleSearch(queryInput.value);
+});
+
+sortOrder.addEventListener("change", () => {
+  if (currentMovies.length) {
+    renderMovies(currentMovies, queryInput.value.trim());
+  }
 });
 
 function scheduleSearch(query) {

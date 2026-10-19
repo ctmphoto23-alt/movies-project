@@ -29,7 +29,7 @@
           <label class="visually-hidden" for="movie-query">Search movies by title</label>
           <span class="search-icon" aria-hidden="true">⌕</span>
           <input id="movie-query" name="query" type="search" placeholder="What are you in the mood for?" autocomplete="off">
-          <button type="submit">Find a film <span aria-hidden="true">→</span></button>
+          <button type="submit">Search <span aria-hidden="true">→</span></button>
         </form>
         <p class="search-hint">Type a movie title to find its poster, rating, and details.</p>
       </div>
@@ -51,7 +51,18 @@
           <p class="section-kicker" id="section-kicker">Find your next favorite</p>
           <h2 id="movies-heading">Search by movie title <span aria-hidden="true">✦</span></h2>
         </div>
-        <p class="results-count" id="results-count"></p>
+        <div class="results-tools">
+          <label class="sort-control" for="sort-order">
+            <span>Sort by</span>
+            <select id="sort-order" name="sortOrder">
+              <option value="relevance">Best match</option>
+              <option value="oldest">Oldest to newest</option>
+              <option value="az">Alphabetical: A–Z</option>
+              <option value="za">Alphabetical: Z–A</option>
+            </select>
+          </label>
+          <p class="results-count" id="results-count"></p>
+        </div>
       </div>
       <p class="status-message" id="status-message" role="status" aria-live="polite" hidden></p>
       <div class="movie-grid" id="movie-grid"></div>
