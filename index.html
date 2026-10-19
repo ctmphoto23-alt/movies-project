@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10131c">
+  <meta name="description" content="Find your next favorite movie at The Marquee, your cozy corner for movie night.">
+  <title>The Marquee — Find your next favorite</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="#" aria-label="The Marquee home">
+      <span class="brand-icon" aria-hidden="true">✦</span>
+      <span>the <strong>marquee</strong></span>
+    </a>
+    <div class="header-actions">
+      <span class="header-note"><span class="status-dot" aria-hidden="true"></span> Your movie night starts here</span>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-content">
+        <p class="eyebrow"><span aria-hidden="true">✦</span> A little movie magic</p>
+        <h1 id="hero-title">Find your next<br>favorite <span>film.</span></h1>
+        <p class="hero-copy">Settle in, get cozy, and discover something wonderful to watch tonight.</p>
+        <form class="search-form" id="search-form" role="search">
+          <label class="visually-hidden" for="movie-query">Search movies by title</label>
+          <span class="search-icon" aria-hidden="true">⌕</span>
+          <input id="movie-query" name="query" type="search" placeholder="What are you in the mood for?" autocomplete="off">
+          <button type="submit">Find a film <span aria-hidden="true">→</span></button>
+        </form>
+        <p class="search-hint">Type a movie title to find its poster, rating, and details.</p>
+      </div>
+      <div class="hero-decoration" aria-hidden="true">
+        <span class="decor-star star-one">✦</span>
+        <span class="decor-star star-two">✧</span>
+        <div class="ticket">
+          <span class="ticket-top">TONIGHT'S FEATURE</span>
+          <span class="ticket-art">✦</span>
+          <span class="ticket-bottom">GOOD STORIES<br>GREAT COMPANY</span>
+        </div>
+        <span class="decor-star star-three">✧</span>
+      </div>
+    </section>
+
+    <section class="movies-section" aria-labelledby="movies-heading">
+      <div class="section-heading">
+        <div>
+          <p class="section-kicker" id="section-kicker">Find your next favorite</p>
+          <h2 id="movies-heading">Search by movie title <span aria-hidden="true">✦</span></h2>
+        </div>
+        <p class="results-count" id="results-count"></p>
+      </div>
+      <p class="status-message" id="status-message" role="status" aria-live="polite" hidden></p>
+      <div class="movie-grid" id="movie-grid"></div>
+    </section>
+
+    <section class="movie-details" id="movie-details" aria-live="polite" hidden>
+      <button class="details-close" id="details-close" type="button" aria-label="Close movie details">×</button>
+      <div class="details-poster-wrap" id="details-poster-wrap"></div>
+      <div class="details-copy">
+        <p class="section-kicker">Now showing</p>
+        <h2 id="details-title"></h2>
+        <p class="details-meta" id="details-meta"></p>
+        <p class="details-rating" id="details-rating"></p>
+        <h3>The story</h3>
+        <p class="details-overview" id="details-overview"></p>
+        <dl class="details-facts" id="details-facts"></dl>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <span class="footer-brand">the <strong>marquee</strong></span>
+    <span>Made for movie nights and the people you share them with.</span>
+    <span>Movie data and posters via <a href="https://www.omdbapi.com/" target="_blank" rel="noreferrer">OMDb</a>.</span>
+  </footer>
+
+  <script src="script.js" defer></script>
+</body>
+</html>
