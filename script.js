@@ -1,5 +1,5 @@
 const API_ROOT = "/.netlify/functions/movies";
-const GITHUB_API_ROOT = "https://marquee-movie-search.netlify.app/.netlify/functions/movies";
+const GITHUB_API_ROOT = "https://moviesfesnew.netlify.app/.netlify/functions/movies";
 const searchForm = document.querySelector("#search-form");
 const queryInput = document.querySelector("#movie-query");
 const grid = document.querySelector("#movie-grid");
