@@ -9,7 +9,6 @@
   --cream: #f7f1e8;
   --muted: #aaa5a5;
   --gold: #f0bc72;
-  --panel: #1b1a20;
 }
 
 * {
@@ -137,8 +136,7 @@ main {
 }
 
 .eyebrow,
-.section-kicker,
-.panel-kicker {
+.section-kicker {
   margin: 0;
   color: var(--gold);
   font-size: 0.7rem;
@@ -212,8 +210,7 @@ main {
   outline: 3px solid rgb(240 188 114 / 36%);
 }
 
-.search-form button,
-.api-input-row button {
+.search-form button {
   flex: 0 0 auto;
   padding: 12px 17px;
   border: 0;
@@ -226,8 +223,7 @@ main {
   transition: background 160ms ease;
 }
 
-.search-form button:hover,
-.api-input-row button:hover {
+.search-form button:hover {
   background: #b46348;
 }
 

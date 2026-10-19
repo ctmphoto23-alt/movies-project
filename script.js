@@ -120,21 +120,24 @@ function clearSearchResults() {
   setStatus("");
 }
 
+function setSearchHeading(query, local = false) {
+  sectionKicker.textContent = local ? "From your OMDb search" : "A little something for your search";
+  moviesHeading.firstChild.textContent = `Search results for “${query}” `;
+}
+
 function renderMovies(movies, query) {
   currentMovies = movies;
   const sortedMovies = [...movies];
-  if (sortOrder.value === "oldest") {
-    sortedMovies.sort((a, b) => {
+  const comparators = {
+    oldest: (a, b) => {
       const yearA = Number.parseInt(a.Year, 10) || Number.MAX_SAFE_INTEGER;
       const yearB = Number.parseInt(b.Year, 10) || Number.MAX_SAFE_INTEGER;
       return yearA - yearB;
-    });
-  } else if (sortOrder.value === "az" || sortOrder.value === "za") {
-    sortedMovies.sort((a, b) => {
-      const order = a.Title.localeCompare(b.Title, undefined, { sensitivity: "base" });
-      return sortOrder.value === "az" ? order : -order;
-    });
-  }
+    },
+    az: (a, b) => a.Title.localeCompare(b.Title, undefined, { sensitivity: "base" }),
+    za: (a, b) => b.Title.localeCompare(a.Title, undefined, { sensitivity: "base" }),
+  };
+  if (comparators[sortOrder.value]) sortedMovies.sort(comparators[sortOrder.value]);
 
   const visibleMovies = sortedMovies.slice(0, MAX_VISIBLE_MOVIES);
   grid.replaceChildren(...visibleMovies.map(createMovieCard));
@@ -164,34 +167,28 @@ async function searchMovies(query) {
   if (isLocalPreview()) {
     const localMatches = initialMovies.filter((movie) =>
       movie.Title.toLocaleLowerCase().includes(title.toLocaleLowerCase()));
-    if (localMatches.length) {
-      totalResults = localMatches.length;
-      sectionKicker.textContent = "From your OMDb search";
-      moviesHeading.firstChild.textContent = `Search results for “${title}” `;
-      renderMovies(localMatches, title);
-      setStatus("Showing matching titles from the OMDb results included with this project. Deploy to Netlify for live searches.", "empty");
-    } else {
-      totalResults = 0;
-      grid.replaceChildren();
-      resultsCount.textContent = "";
-      sectionKicker.textContent = "A little something for your search";
-      moviesHeading.firstChild.textContent = `Search results for “${title}” `;
-      setStatus("Live searches for other titles need the Netlify Function. Deploy this project to Netlify or run it with Netlify Dev.", "error");
-    }
-    details.hidden = true;
+    totalResults = localMatches.length;
+    setSearchHeading(title, true);
+    renderMovies(localMatches, title);
+    setStatus(
+      localMatches.length
+        ? "Showing matching titles from the OMDb results included with this project. Deploy to Netlify for live searches."
+        : "Live searches for other titles need the Netlify Function. Deploy this project to Netlify or run it with Netlify Dev.",
+      localMatches.length ? "empty" : "error",
+    );
     return;
   }
 
   totalResults = 0;
+  currentMovies = [];
   grid.replaceChildren();
   resultsCount.textContent = "";
-  sectionKicker.textContent = "A little something for your search";
-  moviesHeading.firstChild.textContent = `Search results for “${title}” `;
+  setSearchHeading(title);
   setStatus(`Finding movies for “${title}”…`, "loading");
   searchController = new AbortController();
 
   try {
-    const data = await requestMovies({ s: title, type: "movie", page: "1" }, searchController.signal);
+    const data = await requestMovies({ s: title, type: "movie" }, searchController.signal);
     if (data.Response === "False") {
       totalResults = 0;
       renderMovies([], title);
@@ -304,10 +301,9 @@ function scheduleSearch(query) {
     clearSearchResults();
     return;
   }
-
   details.hidden = true;
-  sectionKicker.textContent = "A little something for your search";
-  moviesHeading.firstChild.textContent = `Search results for “${query.trim()}” `;
+  details.hidden = true;
+  setSearchHeading(query.trim());
   setStatus(`Searching for “${query.trim()}”…`, "loading");
   searchTimer = setTimeout(() => searchMovies(query), SEARCH_DELAY);
 }
