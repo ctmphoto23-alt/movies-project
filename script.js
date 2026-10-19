@@ -44,25 +44,42 @@ let totalResults = 0;
 let currentMovies = [];
 const directorCache = new Map();
 
-function isLocalPreview() {
+function isStaticPreview() {
   return window.location.protocol === "file:"
-    || window.location.hostname === "localhost"
-    || window.location.hostname === "127.0.0.1";
+    || window.location.hostname.endsWith(".github.io");
+}
+
+function isLocalServer() {
+  return ["localhost", "127.0.0.1"].includes(window.location.hostname);
+}
+
+function getLocalMatches(query) {
+  const normalizedQuery = query.toLocaleLowerCase();
+  return initialMovies.filter((movie) =>
+    movie.Title.toLocaleLowerCase().includes(normalizedQuery));
 }
 
 async function requestMovies(params, signal) {
-  if (isLocalPreview()) {
-    throw new Error("Live movie search needs the Netlify Function. Deploy this project to Netlify or run it with Netlify Dev.");
+  if (isStaticPreview()) {
+    throw new Error("Live movie search needs the Netlify Function. Use the Netlify site or run this project with Netlify Dev.");
   }
 
   const url = new URL(API_ROOT, window.location.href);
   url.search = new URLSearchParams(params).toString();
   const response = await fetch(url, { signal });
+  if (response.status === 404 && isLocalServer()) {
+    const error = new Error("Netlify Functions aren't running here.");
+    error.code = "LOCAL_FUNCTION_MISSING";
+    throw error;
+  }
   let data;
 
   try {
     data = await response.json();
   } catch {
+    if (response.status === 404 && ["localhost", "127.0.0.1"].includes(window.location.hostname)) {
+      throw new Error("Netlify Functions aren't running here. Start the project with Netlify Dev to search movies locally.");
+    }
     throw new Error("The movie service returned an unreadable response. Please try again.");
   }
 
@@ -218,16 +235,15 @@ async function searchMovies(query) {
     return;
   }
 
-  if (isLocalPreview()) {
-    const localMatches = initialMovies.filter((movie) =>
-      movie.Title.toLocaleLowerCase().includes(title.toLocaleLowerCase()));
+  if (isStaticPreview()) {
+    const localMatches = getLocalMatches(title);
     totalResults = localMatches.length;
     setSearchHeading(title, true);
     renderMovies(localMatches, title);
     setStatus(
       localMatches.length
-        ? "Showing matching titles from the OMDb results included with this project. Deploy to Netlify for live searches."
-        : "Live searches for other titles need the Netlify Function. Deploy this project to Netlify or run it with Netlify Dev.",
+        ? "Showing the movie titles included with this project. Use its Netlify site for live OMDb searches."
+        : "No included titles match. Use the Netlify site for live OMDb searches.",
       localMatches.length ? "empty" : "error",
     );
     return;
@@ -253,6 +269,18 @@ async function searchMovies(query) {
     renderMovies(Array.isArray(data.Search) ? data.Search : [], title);
   } catch (error) {
     if (error.name === "AbortError") return;
+    if (error.code === "LOCAL_FUNCTION_MISSING") {
+      const localMatches = getLocalMatches(title);
+      totalResults = localMatches.length;
+      renderMovies(localMatches, title);
+      setStatus(
+        localMatches.length
+          ? "Showing the movie titles included with this project. Run with Netlify Dev or use the Netlify site for live OMDb searches."
+          : "No included titles match. Run with Netlify Dev or use the Netlify site for live OMDb searches.",
+        localMatches.length ? "empty" : "error",
+      );
+      return;
+    }
     grid.replaceChildren();
     resultsCount.textContent = "";
     setStatus(error.message || "We couldn't find movies right now. Please try again.", "error");
@@ -298,7 +326,7 @@ function renderDetails(data, fallbackTitle = "") {
   document.querySelector("#details-overview").textContent =
     data.Plot && data.Plot !== "N/A"
       ? data.Plot
-      : "Deploy this project to Netlify to load the full movie details from OMDb.";
+      : "Run this project with Netlify Dev or deploy to Netlify to load the full movie details from OMDb.";
 
   const facts = document.querySelector("#details-facts");
   facts.replaceChildren();
@@ -318,7 +346,7 @@ async function showMovieDetails(movie) {
   document.querySelector("#details-overview").textContent = "";
   document.querySelector("#details-facts").replaceChildren();
 
-  if (isLocalPreview()) {
+  if (isStaticPreview()) {
     renderDetails(movie);
     return;
   }
@@ -329,6 +357,12 @@ async function showMovieDetails(movie) {
     renderDetails(data, movie.Title);
   } catch (error) {
     if (error.name === "AbortError") return;
+    if (error.code === "LOCAL_FUNCTION_MISSING") {
+      renderDetails(movie);
+      document.querySelector("#details-overview").textContent =
+        "Full movie details are available through the Netlify site or when running this project with Netlify Dev.";
+      return;
+    }
     document.querySelector("#details-title").textContent = "Movie details unavailable";
     document.querySelector("#details-overview").textContent =
       error.message || "We couldn't load details for this film.";
