@@ -286,6 +286,18 @@ async function searchMovies(query) {
       );
       return;
     }
+    if (isGitHubPages() && error.message.startsWith("Movie search is not configured yet.")) {
+      const localMatches = getLocalMatches(title);
+      totalResults = localMatches.length;
+      renderMovies(localMatches, title);
+      setStatus(
+        localMatches.length
+          ? "Live movie search needs the OMDB_API_KEY configured in Netlify. Showing included titles for now."
+          : "Live movie search needs the OMDB_API_KEY configured in Netlify. No included titles match this search.",
+        localMatches.length ? "empty" : "error",
+      );
+      return;
+    }
     if (isGitHubPages() && error instanceof TypeError) {
       const localMatches = getLocalMatches(title);
       totalResults = localMatches.length;
