@@ -1,4 +1,5 @@
 const API_ROOT = "/.netlify/functions/movies";
+const GITHUB_API_ROOT = "https://marquee-movie-search.netlify.app/.netlify/functions/movies";
 const searchForm = document.querySelector("#search-form");
 const queryInput = document.querySelector("#movie-query");
 const grid = document.querySelector("#movie-grid");
@@ -45,8 +46,11 @@ let currentMovies = [];
 const directorCache = new Map();
 
 function isStaticPreview() {
-  return window.location.protocol === "file:"
-    || window.location.hostname.endsWith(".github.io");
+  return window.location.protocol === "file:";
+}
+
+function isGitHubPages() {
+  return window.location.hostname.endsWith(".github.io");
 }
 
 function isLocalServer() {
@@ -64,10 +68,11 @@ async function requestMovies(params, signal) {
     throw new Error("Live movie search needs the Netlify Function. Use the Netlify site or run this project with Netlify Dev.");
   }
 
-  const url = new URL(API_ROOT, window.location.href);
+  const apiRoot = isGitHubPages() ? GITHUB_API_ROOT : API_ROOT;
+  const url = new URL(apiRoot, window.location.href);
   url.search = new URLSearchParams(params).toString();
   const response = await fetch(url, { signal });
-  if (response.status === 404 && isLocalServer()) {
+  if (response.status === 404 && (isLocalServer() || isGitHubPages())) {
     const error = new Error("Netlify Functions aren't running here.");
     error.code = "LOCAL_FUNCTION_MISSING";
     throw error;
@@ -77,7 +82,7 @@ async function requestMovies(params, signal) {
   try {
     data = await response.json();
   } catch {
-    if (response.status === 404 && ["localhost", "127.0.0.1"].includes(window.location.hostname)) {
+    if (response.status === 404 && (isLocalServer() || isGitHubPages())) {
       throw new Error("Netlify Functions aren't running here. Start the project with Netlify Dev to search movies locally.");
     }
     throw new Error("The movie service returned an unreadable response. Please try again.");
@@ -281,6 +286,18 @@ async function searchMovies(query) {
       );
       return;
     }
+    if (isGitHubPages() && error instanceof TypeError) {
+      const localMatches = getLocalMatches(title);
+      totalResults = localMatches.length;
+      renderMovies(localMatches, title);
+      setStatus(
+        localMatches.length
+          ? "Live OMDb search is unavailable. Showing included titles; deploy the Netlify site to search all movies."
+          : "Live OMDb search is unavailable, and no included titles match. Deploy the Netlify site to search all movies.",
+        localMatches.length ? "empty" : "error",
+      );
+      return;
+    }
     grid.replaceChildren();
     resultsCount.textContent = "";
     setStatus(error.message || "We couldn't find movies right now. Please try again.", "error");
@@ -357,7 +374,7 @@ async function showMovieDetails(movie) {
     renderDetails(data, movie.Title);
   } catch (error) {
     if (error.name === "AbortError") return;
-    if (error.code === "LOCAL_FUNCTION_MISSING") {
+    if (error.code === "LOCAL_FUNCTION_MISSING" || (isGitHubPages() && error instanceof TypeError)) {
       renderDetails(movie);
       document.querySelector("#details-overview").textContent =
         "Full movie details are available through the Netlify site or when running this project with Netlify Dev.";
