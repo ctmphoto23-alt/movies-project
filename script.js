@@ -24,11 +24,25 @@ const initialMovies = [
   { Title: "Fast Times at Ridgemont High", Year: "1982", imdbID: "tt0083929", Type: "movie", Poster: "https://m.media-amazon.com/images/M/MV5BMWM4NTc3N2YtMjk2Ny00MTRmLWE4YzItNTVhMTRlODVkNmE5XkEyXkFqcGc@._V1_QL75_UX380_CR0,5,380,562_.jpg" },
 ];
 
+const localDirectors = {
+  tt0232500: "Rob Cohen",
+  tt1905041: "Justin Lin",
+  tt1596343: "Justin Lin",
+  tt1013752: "Justin Lin",
+  tt0463985: "Justin Lin",
+  tt0322259: "John Singleton",
+  tt6806448: "David Leitch",
+  tt5433138: "Justin Lin",
+  tt5433140: "Louis Leterrier",
+  tt0083929: "Amy Heckerling",
+};
+
 let searchTimer;
 let searchController;
 let detailsController;
 let totalResults = 0;
 let currentMovies = [];
+const directorCache = new Map();
 
 function isLocalPreview() {
   return window.location.protocol === "file:"
@@ -59,6 +73,23 @@ async function requestMovies(params, signal) {
   return data;
 }
 
+function getDirector(movie) {
+  if (localDirectors[movie.imdbID]) {
+    return Promise.resolve(localDirectors[movie.imdbID]);
+  }
+
+  if (!directorCache.has(movie.imdbID)) {
+    directorCache.set(
+      movie.imdbID,
+      requestMovies({ i: movie.imdbID }).then((data) =>
+        data.Director && data.Director !== "N/A" ? data.Director : "Not listed",
+      ).catch(() => "Director unavailable"),
+    );
+  }
+
+  return directorCache.get(movie.imdbID);
+}
+
 function createMovieCard(movie) {
   const card = document.createElement("button");
   card.type = "button";
@@ -76,13 +107,17 @@ function createMovieCard(movie) {
     poster.addEventListener("error", () => {
       poster.remove();
       posterWrap.classList.add("poster-missing");
-      posterWrap.textContent = "✦";
     }, { once: true });
     posterWrap.append(poster);
   } else {
     posterWrap.classList.add("poster-missing");
     posterWrap.textContent = "✦";
   }
+
+  const directorLabel = document.createElement("span");
+  directorLabel.className = "card-director";
+  directorLabel.textContent = "Loading director…";
+  posterWrap.append(directorLabel);
 
   const info = document.createElement("span");
   info.className = "card-info";
@@ -97,6 +132,25 @@ function createMovieCard(movie) {
   info.append(title, metadata);
   card.append(posterWrap, info);
   card.addEventListener("click", () => showMovieDetails(movie));
+
+  let hoverTimer;
+  const showDirector = () => {
+    clearTimeout(hoverTimer);
+    hoverTimer = setTimeout(async () => {
+      directorLabel.textContent = `Directed by ${await getDirector(movie)}`;
+      if (card.matches(":hover, :focus-visible")) {
+        card.classList.add("show-director");
+      }
+    }, 250);
+  };
+  const hideDirector = () => {
+    clearTimeout(hoverTimer);
+    card.classList.remove("show-director");
+  };
+  card.addEventListener("pointerenter", showDirector);
+  card.addEventListener("pointerleave", hideDirector);
+  card.addEventListener("focus", showDirector);
+  card.addEventListener("blur", hideDirector);
   return card;
 }
 

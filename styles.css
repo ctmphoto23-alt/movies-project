@@ -446,10 +446,15 @@ main {
   background: transparent;
   cursor: pointer;
   text-align: left;
-  transition: transform 180ms ease;
+  transition: transform 180ms ease 250ms;
 }
 
-.movie-card:hover {
+.movie-card:not(:hover):not(:focus-visible) {
+  transition-delay: 0s;
+}
+
+.movie-card:hover,
+.movie-card:focus-visible {
   transform: translateY(-5px);
 }
 
@@ -473,11 +478,42 @@ main {
   box-shadow: 0 9px 24px rgb(0 0 0 / 24%);
 }
 
+.poster-missing::before {
+  position: absolute;
+  z-index: 1;
+  color: var(--gold);
+  content: "✦";
+  font-size: 2.3rem;
+}
+
 .card-poster {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.card-director {
+  position: absolute;
+  z-index: 2;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 11px 9px;
+  background: linear-gradient(transparent, rgb(13 12 16 / 94%) 28%);
+  color: #fff4de;
+  font-size: clamp(0.64rem, 1.15vw, 0.78rem);
+  line-height: 1.35;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(5px);
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.movie-card.show-director .card-director {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 100ms;
 }
 
 .details-poster {
@@ -845,6 +881,10 @@ main {
     font-size: 0.8rem;
   }
 
+  .card-director {
+    font-size: 0.66rem;
+  }
+
   .movie-details {
     grid-template-columns: 1fr;
     padding: 20px 15px;
@@ -872,5 +912,6 @@ main {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
   }
 }
