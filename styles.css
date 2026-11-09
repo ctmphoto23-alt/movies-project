@@ -40,7 +40,23 @@ button {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 24px;
+  padding: 10px 0;
   border-bottom: 1px solid rgb(255 255 255 / 8%);
+}
+
+.header-search {
+  flex: 1;
+  max-width: 575px;
+  min-width: 0;
+}
+
+.header-search .search-form {
+  width: 100%;
+}
+
+.header-search .search-hint {
+  margin-top: 6px;
 }
 
 .brand,
@@ -478,6 +494,20 @@ main {
   box-shadow: 0 9px 24px rgb(0 0 0 / 24%);
 }
 
+.card-rank {
+  position: absolute;
+  z-index: 1;
+  top: 9px;
+  left: 9px;
+  padding: 5px 8px;
+  border: 1px solid rgb(240 188 114 / 45%);
+  border-radius: 6px;
+  background: rgb(17 17 24 / 88%);
+  color: var(--gold);
+  font-size: 0.72rem;
+  font-weight: 750;
+}
+
 .poster-missing::before {
   position: absolute;
   z-index: 1;
@@ -547,6 +577,12 @@ main {
   margin-top: 5px;
   color: #a9a3a1;
   font-size: 0.74rem;
+}
+
+.card-rating {
+  margin-right: 7px;
+  color: var(--gold);
+  font-weight: 700;
 }
 
 .movie-details {
@@ -632,6 +668,15 @@ main {
   min-width: 0;
 }
 
+.details-facts .fact-wide {
+  grid-column: 1 / -1;
+}
+
+.details-facts dd a {
+  color: var(--gold);
+  overflow-wrap: anywhere;
+}
+
 .details-facts dt {
   margin-bottom: 5px;
   color: #a9a09b;
@@ -694,6 +739,10 @@ main {
 }
 
 @media (max-width: 850px) {
+  .header-note {
+    display: none;
+  }
+
   .hero {
     padding-right: 5%;
     padding-left: 5%;
@@ -717,6 +766,15 @@ main {
 
   .site-header {
     min-height: 66px;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 12px 0;
+  }
+
+  .header-search {
+    flex-basis: 100%;
+    max-width: none;
+    order: 1;
   }
 
   .header-actions {
@@ -913,5 +971,40 @@ main {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     transition-delay: 0ms !important;
+  }
+}
+
+.skeleton-card {
+  cursor: default;
+  pointer-events: none;
+}
+
+.skeleton-block,
+.skeleton-line {
+  background: linear-gradient(100deg, #2a2227 30%, #3d3037 50%, #2a2227 70%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+}
+
+.skeleton-line {
+  display: block;
+  height: 12px;
+  margin-top: 10px;
+  border-radius: 6px;
+}
+
+.skeleton-line-short {
+  width: 55%;
+}
+
+@keyframes skeleton-shimmer {
+  from { background-position: 100% 0; }
+  to { background-position: -100% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-block,
+  .skeleton-line {
+    animation: none;
   }
 }
