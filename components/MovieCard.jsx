@@ -92,7 +92,7 @@ export function MovieCardSkeleton() {
   );
 }
 
-export default function MovieCard({ movie, onSelect, rank }) {
+export default function MovieCard({ movie, rank }) {
   const [posterFailed, setPosterFailed] = useState(false);
   const [director, setDirector] = useState("Loading director…");
   const [showDirector, setShowDirector] = useState(false);
@@ -121,11 +121,10 @@ export default function MovieCard({ movie, onSelect, rank }) {
   useEffect(() => () => window.clearTimeout(hoverTimer.current), []);
 
   return (
-    <button
+    <a
       className={`movie-card${showDirector ? " show-director" : ""}`}
-      type="button"
+      href={`#/movie/${encodeURIComponent(movie.imdbID)}`}
       aria-label={`View details for ${movie.Title}`}
-      onClick={() => onSelect(movie)}
       onMouseEnter={showDirectorOnFocus}
       onMouseLeave={hideDirector}
       onFocus={showDirectorOnFocus}
@@ -151,6 +150,6 @@ export default function MovieCard({ movie, onSelect, rank }) {
           {movie.Year || "Year unknown"}{movie.Type ? ` · ${movie.Type}` : ""}
         </span>
       </span>
-    </button>
+    </a>
   );
 }

@@ -5,7 +5,7 @@ The Marquee is a React app built with Vite. It searches for movies using a Cloud
 ## Source structure
 
 - `pages/home.jsx` contains the home page, search state, and results.
-- `pages/movie.jsx` contains movie details.
+- `pages/movie.jsx` contains the separate movie details page, accessible at `#/movie/<IMDb ID>`.
 - `components/MovieCard.jsx` contains movie cards, their loading skeleton, and movie-data helpers.
 - `components/Nav.jsx` contains the site navigation and search bar; `components/Footer.jsx` contains the footer.
 - `components/Layout.jsx` assembles the navigation, page content, and footer.

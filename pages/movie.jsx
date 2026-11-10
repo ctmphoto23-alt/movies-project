@@ -1,43 +1,42 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { isStaticPreview, requestMovies } from "../components/MovieCard.jsx";
 
-export function MovieDetails({ movie, onClose }) {
+export default function MovieDetails({ movieId }) {
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
-  const detailsRef = useRef(null);
 
   useEffect(() => {
     const controller = new AbortController();
-    setData(null);
-    setError("");
+    window.scrollTo(0, 0);
 
-    detailsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-
+    if (!/^tt\d+$/.test(movieId)) {
+      setError("This movie link is invalid.");
+      return () => controller.abort();
+    }
     if (isStaticPreview()) {
-      setData(movie);
+      setError("Run the app with Vite to load movie details.");
       return () => controller.abort();
     }
 
     async function loadDetails() {
       try {
-        setData(await requestMovies({ i: movie.imdbID }, controller.signal));
-      } catch (requestError) {
-        if (requestError.name === "AbortError") return;
-        if (requestError instanceof TypeError) {
-          setData(movie);
-          setError("Full movie details will be available after the Cloudflare Worker is configured.");
+        const result = await requestMovies({ i: movieId }, controller.signal);
+        if (result.Response === "False") {
+          setError(result.Error || "Movie not found.");
           return;
         }
+        setData(result);
+      } catch (requestError) {
+        if (requestError.name === "AbortError") return;
         setError(requestError.message || "We couldn't load details for this film.");
       }
     }
 
     loadDetails();
     return () => controller.abort();
-  }, [movie]);
+  }, [movieId]);
 
-  const details = data || movie;
-  const title = error && !data ? "Movie details unavailable" : (details.Title || movie.Title);
+  const details = data || {};
   const metadata = [
     details.Year,
     details.Runtime !== "N/A" ? details.Runtime : "",
@@ -46,12 +45,9 @@ export function MovieDetails({ movie, onClose }) {
   const rating = details.imdbRating && details.imdbRating !== "N/A"
     ? `★ ${details.imdbRating} / 10 on IMDb${details.imdbVotes && details.imdbVotes !== "N/A" ? ` · ${details.imdbVotes} ratings` : ""}`
     : "IMDb rating not available";
-  const overview = error
-    || (details.Plot && details.Plot !== "N/A"
-      ? details.Plot
-      : data
-        ? "Configure the Cloudflare Worker to load full movie details from OMDb."
-        : "Loading movie details…");
+  const overview = details.Plot && details.Plot !== "N/A"
+    ? details.Plot
+    : "No plot available.";
   const hasValue = (value) => value && value !== "N/A";
   const ratingSources = (details.Ratings || [])
     .map(({ Source, Value }) => `${Source === "Internet Movie Database" ? "IMDb" : Source}: ${Value}`)
@@ -78,31 +74,39 @@ export function MovieDetails({ movie, onClose }) {
   ].filter(([, value]) => hasValue(value));
 
   return (
-    <section className="movie-details" ref={detailsRef} aria-live="polite">
-      <button className="details-close" type="button" aria-label="Close movie details" onClick={onClose}>×</button>
-      <div className={`details-poster-wrap${!details.Poster || details.Poster === "N/A" ? " poster-missing" : ""}`}>
-        {details.Poster && details.Poster !== "N/A" && (
-          <img className="details-poster" src={details.Poster} alt={`${details.Title || movie.Title} poster`} />
-        )}
-      </div>
-      <div className="details-copy">
-        <p className="section-kicker">Now showing</p>
-        <h2>{title}</h2>
-        <p className="details-meta">{metadata}</p>
-        <p className="details-rating">{rating}</p>
-        <h3>The story</h3>
-        <p className="details-overview">{overview}</p>
-        <dl className="details-facts">
-          {facts.map(([label, value]) => (
-            <div key={label} className={["Cast", "Awards", "Ratings", "Writer", "Website"].includes(label) ? "fact-wide" : undefined}>
-              <dt>{label}</dt>
-              <dd>
-                {label === "Website" ? <a href={value} target="_blank" rel="noreferrer">{value}</a> : value}
-              </dd>
-            </div>
-          ))}
-        </dl>
-      </div>
-    </section>
+    <main className="movie-page">
+      <a className="details-back" href="#top">← Back to movies</a>
+      {!data ? (
+        <p className={`status-message ${error ? "error" : "loading"}`} role="status">
+          {error || "Loading movie details…"}
+        </p>
+      ) : (
+        <section className="movie-details" aria-label="Movie details">
+          <div className={`details-poster-wrap${!details.Poster || details.Poster === "N/A" ? " poster-missing" : ""}`}>
+            {details.Poster && details.Poster !== "N/A" && (
+              <img className="details-poster" src={details.Poster} alt={`${details.Title} poster`} />
+            )}
+          </div>
+          <div className="details-copy">
+            <p className="section-kicker">Now showing</p>
+            <h1>{details.Title}</h1>
+            <p className="details-meta">{metadata}</p>
+            <p className="details-rating">{rating}</p>
+            <h2>The story</h2>
+            <p className="details-overview">{overview}</p>
+            <dl className="details-facts">
+              {facts.map(([label, value]) => (
+                <div key={label} className={["Cast", "Awards", "Ratings", "Writer", "Website"].includes(label) ? "fact-wide" : undefined}>
+                  <dt>{label}</dt>
+                  <dd>
+                    {label === "Website" ? <a href={value} target="_blank" rel="noreferrer">{value}</a> : value}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        </section>
+      )}
+    </main>
   );
 }

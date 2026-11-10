@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
 import MovieCard, { MovieCardSkeleton, getLocalMatches, isStaticPreview, requestMovies } from "../components/MovieCard.jsx";
-import { MovieDetails } from "./movie.jsx";
 
 const MAX_VISIBLE_MOVIES = 6;
 const SEARCH_DELAY = 450;
@@ -30,7 +29,6 @@ export default function Home({ query }) {
   const [featuredStatus, setFeaturedStatus] = useState({ message: "Loading current ratings and posters…", state: "loading" });
   const [totalResults, setTotalResults] = useState(0);
   const [searchStatus, setSearchStatus] = useState({ message: "", state: "" });
-  const [selectedMovie, setSelectedMovie] = useState(null);
 
   useEffect(() => {
     if (isStaticPreview()) {
@@ -101,12 +99,10 @@ export default function Home({ query }) {
       setMovies([]);
       setTotalResults(0);
       setSearchStatus({ message: "", state: "" });
-      setSelectedMovie(null);
       return undefined;
     }
 
     const controller = new AbortController();
-    setSelectedMovie(null);
     setSearchStatus({ message: `Searching for “${title}”…`, state: "loading" });
 
     const timer = window.setTimeout(async () => {
@@ -258,16 +254,12 @@ export default function Home({ query }) {
             <MovieCard
               key={movie.imdbID}
               movie={movie}
-              onSelect={setSelectedMovie}
               rank={!query.trim() ? index + 1 : undefined}
             />
           ))}
         </div>
       </section>
 
-      {selectedMovie && (
-        <MovieDetails key={selectedMovie.imdbID} movie={selectedMovie} onClose={() => setSelectedMovie(null)} />
-      )}
     </main>
   );
 }
